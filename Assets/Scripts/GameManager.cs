@@ -26,6 +26,8 @@ public class GameManager : MonoBehaviour
     public float speed = 1;
     [Range(1, 10)]
     public float scrollDownSpeed = 1;
+    [Range(0,1)]
+    public float speedModifier;
 
     int score;
 
@@ -95,13 +97,11 @@ public class GameManager : MonoBehaviour
     {
         if (tr.position.x >= 3)
         {
-            direction = -1;
-            NullCombo();
+            swapDirection();
         }
         if (tr.position.x <= -3)
         {
-            NullCombo();
-            direction = 1;
+            swapDirection();
         }
         tr.Translate(Vector3.right * Time.deltaTime * speed * direction);
     }
@@ -150,6 +150,7 @@ public class GameManager : MonoBehaviour
         score += 1 + perfectCombo;
         ui.UpdateScore(score);
         ui.UpdateCombo(perfectCombo);
+        speed += speedModifier;
     }
     void OnPerfect()
     {
@@ -160,7 +161,7 @@ public class GameManager : MonoBehaviour
     void OnMiss()
 
     {
-        Debug.Log("YOU LOSE");
+        OnLose();
     }
 
 
@@ -181,5 +182,28 @@ public class GameManager : MonoBehaviour
     {
         ui.UpdateCombo(perfectCombo = 0);
     }
+    void NullScore()
+    {
+        ui.UpdateScore(score = 0);
+    }
 
+    void OnLose()
+    {
+        NullCombo();
+        NullScore();
+        speed = 4;
+        while(currentLine.position.y > 0)
+        {
+            board.Translate(Vector3.down * Time.deltaTime * (currentLine.position.y + scrollDownSpeed));
+        }   
+
+        ui.scoreText.text = "LOSER";
+
+    }
+
+    void swapDirection()
+    {
+        direction *= -1;
+        OnLose();
+    }
 }
