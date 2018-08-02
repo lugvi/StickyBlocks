@@ -22,31 +22,32 @@ public class GameManager : MonoBehaviour
     [Range(0, 5)]
     public float perfDist;
 
-    [Range(1, 10)]
+    [Range(1, 100)]
     public float speed = 1;
-    public Transform Player;
+    [Range(1, 10)]
+    public float scrollDownSpeed = 1;
+
+    int score;
+
+    int perfectCombo;
 
     public GameObject prefab;
 
     public Transform board;
 
-    float spawnHeight = 12;
+    float spawnHeight = -2;
 
     int direction = 1;
 
-    public List<Transform> startLines;
+    public UIController ui;
+    Queue<Transform> path;
 
-    public Queue<Transform> path;
-
-    public Transform currentLine;
+    Transform currentLine;
     // Use this for initialization
     void Start()
     {
         path = new Queue<Transform>();
-        foreach (Transform t in startLines)
-        {
-            path.Enqueue(t);
-        }
+        Initialize();
         currentLine = path.Dequeue();
         OnClick += () =>
         {
@@ -68,21 +69,40 @@ public class GameManager : MonoBehaviour
     }
 
 
-
+    Transform lastLine;
     void SpawnLine(GameObject obj)
     {
         Transform a = Instantiate(obj, board).transform;
-        a.localPosition = Vector3.up * spawnHeight;
+        Vector3 spawnPos = Vector3.up * spawnHeight + Vector3.left * Random.Range(-3f, 3f);
+        a.localPosition = spawnPos;
+        spawnHeight += 2;
+        if (path.Count > 0 && IsClose(a.position, lastLine.position) < minDist)
+        {
+            if (IsClose(a.position, Vector3.zero) > minDist)
+            {
+                a.position = new Vector3(a.position.x * -1, a.position.y, a.position.z);
+            }
+            else
+            {
+                a.Translate(Vector3.left * (Random.value < 0.5f ? -minDist : minDist));
+            }
+        }
         path.Enqueue(a);
-        a.Translate(Vector3.left * Random.Range(-3f, 3f));
+        lastLine = a;
     }
 
     void PingPong(Transform tr)
     {
         if (tr.position.x >= 3)
+        {
             direction = -1;
+            NullCombo();
+        }
         if (tr.position.x <= -3)
+        {
+            NullCombo();
             direction = 1;
+        }
         tr.Translate(Vector3.right * Time.deltaTime * speed * direction);
     }
 
@@ -91,11 +111,13 @@ public class GameManager : MonoBehaviour
         float dist = IsClose(currentLine.position, path.Peek().position);
         if (dist < minDist)
         {
-            OnHit();
             if (dist < perfDist)
             {
                 OnPerfect();
             }
+            else
+                perfectCombo = 0;
+            OnHit();
         }
         else
         {
@@ -108,30 +130,37 @@ public class GameManager : MonoBehaviour
     {
         if (currentLine.position.y > 0)
         {
-            board.Translate(Vector3.down * Time.deltaTime * (currentLine.position.y+1));
+            board.Translate(Vector3.down * Time.deltaTime * (currentLine.position.y + scrollDownSpeed));
+        }
+        else
+        {
+            NullCombo();
         }
 
     }
 
     void OnHit()
     {
-		currentLine.SetParent(path.Peek());
+        currentLine.SetParent(path.Peek());
         Destroy(currentLine.gameObject, 5);
         currentLine = path.Dequeue();
-        direction = Random.value < .5f ? 1 : -1;
-        spawnHeight += 2;
+        //direction = Random.value < .5f ? 1 : -1;
+        direction = currentLine.position.x - path.Peek().position.x < 0 ? 1 : -1;
         SpawnLine(prefab);
-
+        score += 1 + perfectCombo;
+        ui.UpdateScore(score);
+        ui.UpdateCombo(perfectCombo);
     }
     void OnPerfect()
     {
         Debug.Log("Perfect");
+        perfectCombo++;
     }
 
     void OnMiss()
 
     {
-
+        Debug.Log("YOU LOSE");
     }
 
 
@@ -140,4 +169,17 @@ public class GameManager : MonoBehaviour
     {
         return Mathf.Abs(a.x - b.x);
     }
+
+    void Initialize()
+    {
+        for (int i = -1; i < 5; i++)
+        {
+            SpawnLine(prefab);
+        }
+    }
+    void NullCombo()
+    {
+        ui.UpdateCombo(perfectCombo = 0);
+    }
+
 }
