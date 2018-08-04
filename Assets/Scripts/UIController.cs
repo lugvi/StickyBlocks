@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class UIController : MonoBehaviour
 {
 
-    public Text scoreText;
+    public Text currentScoreText;
     public Text ComboText;
 
     public Slider speedSlider;
@@ -16,6 +16,11 @@ public class UIController : MonoBehaviour
     public Text perfectText;
     public Slider minSlider;
     public Text minText;
+
+    public GameObject gameOverPanel;
+
+    public Text endScoreText;
+    public Text highScoreText;
 
 
     private void Start() {
@@ -42,16 +47,24 @@ public class UIController : MonoBehaviour
             gm.minDist = v;
             minText.text = v+"";
         });
+
     }
 
     public void UpdateScore(int score)
     {
-        scoreText.text = score +"";
+        currentScoreText.text = score +"";
     }
     public void UpdateCombo(int combo)
     {
         ComboText.text = combo==0?"":combo+"x";
     }
     
+
+    public void OnGameOver()
+    {
+        gameOverPanel.SetActive(true);
+        endScoreText.text = currentScoreText.text;
+        highScoreText.text = PlayerPrefs.GetInt("Highscore")+"";
+    }
 
 }

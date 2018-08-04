@@ -26,12 +26,17 @@ public class GameManager : MonoBehaviour
     public float speed = 1;
     [Range(1, 10)]
     public float scrollDownSpeed = 1;
-    [Range(0,1)]
+    [Range(0, 1)]
     public float speedModifier;
-
+    [Range(0, 0.1f)]
+    public float hueModifier;
     int score;
 
+    int highScore;
+    int maxHeight;
+
     int perfectCombo;
+
 
     public GameObject prefab;
 
@@ -48,13 +53,13 @@ public class GameManager : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        highScore = PlayerPrefs.GetInt("Highscore");
+        maxHeight = PlayerPrefs.GetInt("MaxHeight");
+        //PlayerPrefs.SetInt("MaxHeight",0);
         path = new Queue<Transform>();
         Initialize();
         currentLine = path.Dequeue();
-        OnClick += () =>
-        {
-            Clicked();
-        };
+        OnClick += Clicked;
     }
 
     // Update is called once per frame
@@ -72,36 +77,54 @@ public class GameManager : MonoBehaviour
 
 
     Transform lastLine;
+    float hue = 0;
+
+    bool maxHeightMarkerSet = false;
     void SpawnLine(GameObject obj)
     {
-        Transform a = Instantiate(obj, board).transform;
+        Transform Line = Instantiate(obj, board).transform;
         Vector3 spawnPos = Vector3.up * spawnHeight + Vector3.left * Random.Range(-3f, 3f);
-        a.localPosition = spawnPos;
+        Line.localPosition = spawnPos;
         spawnHeight += 2;
-        if (path.Count > 0 && IsClose(a.position, lastLine.position) < minDist)
+        Line.Find("Target").GetComponent<SpriteRenderer>().color = Color.HSVToRGB(hue, 1, 1);
+        hue += hueModifier;
+        if (hue >= 1)
         {
-            if (IsClose(a.position, Vector3.zero) > minDist)
+            hue = 0;
+        }
+        if (!maxHeightMarkerSet&&spawnHeight > maxHeight)
+        {
+            Line.Find("Background").GetComponent<SpriteRenderer>().enabled = true;
+            maxHeightMarkerSet = true;
+        }
+        if (path.Count > 0 && IsClose(Line.position, lastLine.position) < minDist)
+        {
+            if (IsClose(Line.position, Vector3.zero) > minDist)
             {
-                a.position = new Vector3(a.position.x * -1, a.position.y, a.position.z);
+                Line.position = new Vector3(Line.position.x * -1, Line.position.y, Line.position.z);
             }
             else
             {
-                a.Translate(Vector3.left * (Random.value < 0.5f ? -minDist : minDist));
+                Line.Translate(Vector3.left * (Random.value < 0.5f ? 1 : -1));
             }
         }
-        path.Enqueue(a);
-        lastLine = a;
+        path.Enqueue(Line);
+        lastLine = Line;
+
+        Debug.Log(PlayerPrefs.GetInt("MaxHeight"));
+        Debug.Log(maxHeight);
+        Debug.Log(spawnHeight);
     }
 
     void PingPong(Transform tr)
     {
         if (tr.position.x >= 3)
         {
-            swapDirection();
+            direction = -1;
         }
         if (tr.position.x <= -3)
         {
-            swapDirection();
+            direction = 1;
         }
         tr.Translate(Vector3.right * Time.deltaTime * speed * direction);
     }
@@ -144,10 +167,13 @@ public class GameManager : MonoBehaviour
         currentLine.SetParent(path.Peek());
         Destroy(currentLine.gameObject, 5);
         currentLine = path.Dequeue();
-        //direction = Random.value < .5f ? 1 : -1;
         direction = currentLine.position.x - path.Peek().position.x < 0 ? 1 : -1;
         SpawnLine(prefab);
         score += 1 + perfectCombo;
+        if (score > highScore)
+        {
+            PlayerPrefs.SetInt("Highscore", score);
+        }
         ui.UpdateScore(score);
         ui.UpdateCombo(perfectCombo);
         speed += speedModifier;
@@ -189,21 +215,22 @@ public class GameManager : MonoBehaviour
 
     void OnLose()
     {
+        ui.OnGameOver();
         NullCombo();
         NullScore();
         speed = 4;
-        while(currentLine.position.y > 0)
+        while (currentLine.position.y > 0)
         {
             board.Translate(Vector3.down * Time.deltaTime * (currentLine.position.y + scrollDownSpeed));
-        }   
+        }
+        OnClick -= Clicked;
 
-        ui.scoreText.text = "LOSER";
+        if(spawnHeight-12>PlayerPrefs.GetInt("MaxHeight"))
+        PlayerPrefs.SetInt("MaxHeight",(int)spawnHeight-12);
+        //ui.currentScoreText.text = "LOSER";
 
     }
 
-    void swapDirection()
-    {
-        direction *= -1;
-        OnLose();
-    }
+
+
 }
