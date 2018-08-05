@@ -30,6 +30,8 @@ public class GameManager : MonoBehaviour
     public float speedModifier;
     [Range(0, 0.1f)]
     public float hueModifier;
+
+
     int score;
 
     int highScore;
@@ -41,6 +43,8 @@ public class GameManager : MonoBehaviour
     public GameObject linePrefab;
     public GameObject textPrefab;
 
+    public GradientScript gr;
+
     public Transform board;
 
     float spawnHeight = -2;
@@ -51,9 +55,12 @@ public class GameManager : MonoBehaviour
     Queue<Transform> path;
 
     Transform currentLine;
+
+    ParticleSystem currentParticles;
     // Use this for initialization
     void Start()
     {
+        GradientStep = Random.value;
         highScore = PlayerPrefs.GetInt("Highscore");
         maxHeight = PlayerPrefs.GetInt("MaxHeight");
         //PlayerPrefs.SetInt("MaxHeight",0);
@@ -78,8 +85,9 @@ public class GameManager : MonoBehaviour
 
 
     Transform lastLine;
-    float hue = 0;
 
+    Color currentColor;
+    float GradientStep=0;
     bool maxHeightMarkerSet = false;
     void SpawnLine(GameObject obj)
     {
@@ -87,18 +95,22 @@ public class GameManager : MonoBehaviour
         Vector3 spawnPos = Vector3.up * spawnHeight + Vector3.left * Random.Range(-3f, 3f);
         Line.localPosition = spawnPos;
         spawnHeight += 2;
-        Line.Find("Target").GetComponent<SpriteRenderer>().color = Color.HSVToRGB(hue, 1, 1);
-        hue += hueModifier;
-        if (hue >= 1)
-        {
-            hue = 0;
-        }
-        if (!maxHeightMarkerSet&&spawnHeight > maxHeight)
+
+        currentColor = gr.gradient.Evaluate(GradientStep);
+        GradientStep += hueModifier; 
+        GradientStep %=1;
+
+
+        Transform Target = Line.Find("Target");
+        Target.GetComponent<SpriteRenderer>().color = currentColor;
+        
+
+        if (!maxHeightMarkerSet && spawnHeight > maxHeight)
         {
             Transform maxHeightLine = Line.Find("BottomBorder");
             maxHeightLine.GetComponent<SpriteRenderer>().color = Color.yellow;
-            GameObject TextMesh =Instantiate(textPrefab,board);
-            TextMesh.GetComponent<TextMesh>().text = spawnHeight+"";
+            GameObject TextMesh = Instantiate(textPrefab, board);
+            TextMesh.GetComponent<TextMesh>().text = spawnHeight + "";
             TextMesh.transform.position = maxHeightLine.position;
 
             maxHeightMarkerSet = true;
@@ -117,11 +129,15 @@ public class GameManager : MonoBehaviour
         path.Enqueue(Line);
         lastLine = Line;
 
-        Debug.Log(PlayerPrefs.GetInt("MaxHeight"));
-        Debug.Log(maxHeight);
-        Debug.Log(spawnHeight);
     }
 
+
+  
+
+    float CheckColorDist(Color a, Color b)
+    {
+        return Mathf.Abs(((a.r-b.r)+(a.g-b.g)+(a.b-b.b)));
+    }
     void PingPong(Transform tr)
     {
         if (tr.position.x >= 3)
@@ -173,6 +189,8 @@ public class GameManager : MonoBehaviour
         currentLine.SetParent(path.Peek());
         Destroy(currentLine.gameObject, 5);
         currentLine = path.Dequeue();
+        currentLine.Find("Particle System").GetComponentInChildren<ParticleSystem>().Play();
+
         direction = currentLine.position.x - path.Peek().position.x < 0 ? 1 : -1;
         SpawnLine(linePrefab);
         score += 1 + perfectCombo;
@@ -186,7 +204,7 @@ public class GameManager : MonoBehaviour
     }
     void OnPerfect()
     {
-        Debug.Log("Perfect");
+        //Debug.Log("Perfect");
         perfectCombo++;
     }
 
@@ -231,16 +249,16 @@ public class GameManager : MonoBehaviour
         }
         OnClick -= Clicked;
 
-        if(spawnHeight-12>PlayerPrefs.GetInt("MaxHeight"))
-        PlayerPrefs.SetInt("MaxHeight",(int)spawnHeight-12);
+        if (spawnHeight - 12 > PlayerPrefs.GetInt("MaxHeight"))
+            PlayerPrefs.SetInt("MaxHeight", (int)spawnHeight - 12);
         //ui.currentScoreText.text = "LOSER";
 
     }
 
     public void ResetHeight()
     {
-        PlayerPrefs.SetInt("MaxHeight",0);
-        PlayerPrefs.SetInt("Highscore",0);
+        PlayerPrefs.SetInt("MaxHeight", 0);
+        PlayerPrefs.SetInt("Highscore", 0);
 
     }
 

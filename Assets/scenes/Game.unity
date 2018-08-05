@@ -1817,6 +1817,7 @@ GameObject:
   m_Component:
   - component: {fileID: 880955454}
   - component: {fileID: 880955453}
+  - component: {fileID: 880955455}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -1835,14 +1836,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0978b5a2d6737d143932ed89c65a308c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  minDist: 0.7
+  minDist: 0.79
   perfDist: 0.35
   speed: 5
   scrollDownSpeed: 1
   speedModifier: 0.01
-  hueModifier: 0.0049
+  hueModifier: 0.008
   linePrefab: {fileID: 1843438397263998, guid: 81d2267dbf6351b4187ccfb478821281, type: 2}
   textPrefab: {fileID: 1208797793712736, guid: 22a2629791b4e864da027c91dff933ad, type: 2}
+  gr: {fileID: 880955455}
   board: {fileID: 1581895050}
   ui: {fileID: 844024514}
 --- !u!4 &880955454
@@ -1858,6 +1860,46 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &880955455
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 880955452}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba8c7c04a164d454d8b90595cbfeb72d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gradient:
+    serializedVersion: 2
+    key0: {r: 1, g: 0, b: 0, a: 1}
+    key1: {r: 0, g: 0.8758622, b: 1, a: 1}
+    key2: {r: 0, g: 0.25517225, b: 1, a: 0}
+    key3: {r: 0, g: 1, b: 0.21379304, a: 0}
+    key4: {r: 1, g: 0, b: 0, a: 0}
+    key5: {r: 0, g: 0, b: 0, a: 0}
+    key6: {r: 0, g: 0, b: 0, a: 0}
+    key7: {r: 0, g: 0, b: 0, a: 0}
+    ctime0: 0
+    ctime1: 15420
+    ctime2: 30069
+    ctime3: 45296
+    ctime4: 65535
+    ctime5: 0
+    ctime6: 0
+    ctime7: 0
+    atime0: 0
+    atime1: 65535
+    atime2: 0
+    atime3: 0
+    atime4: 0
+    atime5: 0
+    atime6: 0
+    atime7: 0
+    m_Mode: 0
+    m_NumColorKeys: 5
+    m_NumAlphaKeys: 2
 --- !u!1 &985375753
 GameObject:
   m_ObjectHideFlags: 0
