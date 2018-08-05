@@ -38,7 +38,8 @@ public class GameManager : MonoBehaviour
     int perfectCombo;
 
 
-    public GameObject prefab;
+    public GameObject linePrefab;
+    public GameObject textPrefab;
 
     public Transform board;
 
@@ -94,7 +95,12 @@ public class GameManager : MonoBehaviour
         }
         if (!maxHeightMarkerSet&&spawnHeight > maxHeight)
         {
-            Line.Find("Background").GetComponent<SpriteRenderer>().enabled = true;
+            Transform maxHeightLine = Line.Find("BottomBorder");
+            maxHeightLine.GetComponent<SpriteRenderer>().color = Color.yellow;
+            GameObject TextMesh =Instantiate(textPrefab,board);
+            TextMesh.GetComponent<TextMesh>().text = spawnHeight+"";
+            TextMesh.transform.position = maxHeightLine.position;
+
             maxHeightMarkerSet = true;
         }
         if (path.Count > 0 && IsClose(Line.position, lastLine.position) < minDist)
@@ -168,7 +174,7 @@ public class GameManager : MonoBehaviour
         Destroy(currentLine.gameObject, 5);
         currentLine = path.Dequeue();
         direction = currentLine.position.x - path.Peek().position.x < 0 ? 1 : -1;
-        SpawnLine(prefab);
+        SpawnLine(linePrefab);
         score += 1 + perfectCombo;
         if (score > highScore)
         {
@@ -201,7 +207,7 @@ public class GameManager : MonoBehaviour
     {
         for (int i = -1; i < 5; i++)
         {
-            SpawnLine(prefab);
+            SpawnLine(linePrefab);
         }
     }
     void NullCombo()
@@ -228,6 +234,13 @@ public class GameManager : MonoBehaviour
         if(spawnHeight-12>PlayerPrefs.GetInt("MaxHeight"))
         PlayerPrefs.SetInt("MaxHeight",(int)spawnHeight-12);
         //ui.currentScoreText.text = "LOSER";
+
+    }
+
+    public void ResetHeight()
+    {
+        PlayerPrefs.SetInt("MaxHeight",0);
+        PlayerPrefs.SetInt("Highscore",0);
 
     }
 
