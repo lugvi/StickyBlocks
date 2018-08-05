@@ -19,8 +19,11 @@ public class UIController : MonoBehaviour
 
     public GameObject gameOverPanel;
 
-    public Text endScoreText;
+    // public Text endScoreText;
     public Text highScoreText;
+
+    private Animation scoreAnimation;
+    private Animation comboAnimation;
 
 
     private void Start() {
@@ -48,22 +51,33 @@ public class UIController : MonoBehaviour
             minText.text = v+"";
         });
 
+        scoreAnimation = currentScoreText.GetComponent<Animation>();
+        comboAnimation = ComboText.GetComponent<Animation>();
+
+        Debug.Log("Init UI");
+
     }
 
     public void UpdateScore(int score)
     {
+        Debug.Log("UPdate Score");
         currentScoreText.text = score +"";
+        if(scoreAnimation.isPlaying)scoreAnimation.Stop();
+        scoreAnimation.Play();
     }
     public void UpdateCombo(int combo)
     {
-        ComboText.text = combo==0?"":combo+"x";
+        ComboText.transform.position = Input.mousePosition + Vector3.one*100;
+        ComboText.text = combo<2?"":combo+"x";
+        if(comboAnimation.isPlaying)comboAnimation.Stop();
+        comboAnimation.Play();
     }
     
 
     public void OnGameOver()
     {
         gameOverPanel.SetActive(true);
-        endScoreText.text = currentScoreText.text;
+        // endScoreText.text = currentScoreText.text;
         highScoreText.text = PlayerPrefs.GetInt("Highscore")+"";
     }
 

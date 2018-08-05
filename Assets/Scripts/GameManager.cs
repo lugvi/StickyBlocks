@@ -6,16 +6,12 @@ public class GameManager : MonoBehaviour
 {
 
     public static GameManager instance;
-    private void Awake()
-    {
-        instance = this;
-    }
 
 
 
-    public delegate void Click();
+    // public delegate void Click();
 
-    public event Click OnClick;
+    // public event Click OnClick;
 
     [Range(0, 5)]
     public float minDist;
@@ -57,9 +53,14 @@ public class GameManager : MonoBehaviour
     Transform currentLine;
 
     ParticleSystem currentParticles;
+    Gradient currentGradient;
+    bool canPlay = true;
     // Use this for initialization
-    void Start()
+    void Awake()
     {
+        instance = this;
+
+        currentGradient = gr.gradients[Random.Range(0, gr.gradients.Count)];
         GradientStep = Random.value;
         highScore = PlayerPrefs.GetInt("Highscore");
         maxHeight = PlayerPrefs.GetInt("MaxHeight");
@@ -67,8 +68,9 @@ public class GameManager : MonoBehaviour
         path = new Queue<Transform>();
         Initialize();
         currentLine = path.Dequeue();
-        OnClick += Clicked;
+        // OnClick += Clicked;
     }
+
 
     // Update is called once per frame
     void Update()
@@ -76,9 +78,10 @@ public class GameManager : MonoBehaviour
         PingPong(currentLine);
         ScrollDown();
 
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) && canPlay)
         {
-            OnClick();
+            Clicked();
+            // OnClick();
         }
 
     }
@@ -87,27 +90,29 @@ public class GameManager : MonoBehaviour
     Transform lastLine;
 
     Color currentColor;
-    float GradientStep=0;
+    float GradientStep = 0;
     bool maxHeightMarkerSet = false;
-    void SpawnLine(GameObject obj)
+    void SpawnLine(GameObject obj, bool animate = true)
     {
         Transform Line = Instantiate(obj, board).transform;
         Vector3 spawnPos = Vector3.up * spawnHeight + Vector3.left * Random.Range(-3f, 3f);
         Line.localPosition = spawnPos;
         spawnHeight += 2;
 
-        currentColor = gr.gradient.Evaluate(GradientStep);
-        GradientStep += hueModifier; 
-        GradientStep %=1;
+        currentColor = currentGradient.Evaluate(GradientStep);
+        GradientStep += hueModifier;
+        GradientStep %= 1;
 
 
         Transform Target = Line.Find("Target");
         Target.GetComponent<SpriteRenderer>().color = currentColor;
-        
+        if(animate)
+            Target.GetComponent<Animation>().Play();
+
 
         if (!maxHeightMarkerSet && spawnHeight > maxHeight)
         {
-            Transform maxHeightLine = Line.Find("BottomBorder");
+            Transform maxHeightLine = Line.Find("TopBorder");
             maxHeightLine.GetComponent<SpriteRenderer>().color = Color.yellow;
             GameObject TextMesh = Instantiate(textPrefab, board);
             TextMesh.GetComponent<TextMesh>().text = spawnHeight + "";
@@ -132,11 +137,11 @@ public class GameManager : MonoBehaviour
     }
 
 
-  
+
 
     float CheckColorDist(Color a, Color b)
     {
-        return Mathf.Abs(((a.r-b.r)+(a.g-b.g)+(a.b-b.b)));
+        return Mathf.Abs(((a.r - b.r) + (a.g - b.g) + (a.b - b.b)));
     }
     void PingPong(Transform tr)
     {
@@ -189,7 +194,16 @@ public class GameManager : MonoBehaviour
         currentLine.SetParent(path.Peek());
         Destroy(currentLine.gameObject, 5);
         currentLine = path.Dequeue();
-        currentLine.Find("Particle System").GetComponentInChildren<ParticleSystem>().Play();
+        var particle = currentLine.GetComponentInChildren<ParticleSystem>();
+        
+        var col = particle.colorOverLifetime;
+        col.enabled = true;
+
+        Gradient grad = new Gradient();
+        grad.SetKeys( new GradientColorKey[] { new GradientColorKey(currentColor, 0.5f), new GradientColorKey(currentGradient.Evaluate(GradientStep+hueModifier), 1.0f) }, new GradientAlphaKey[] {new GradientAlphaKey(1f, 0.0f) , new GradientAlphaKey(0.0f, 1.0f)} );
+
+        col.color = grad;
+        particle.Play();
 
         direction = currentLine.position.x - path.Peek().position.x < 0 ? 1 : -1;
         SpawnLine(linePrefab);
@@ -223,31 +237,32 @@ public class GameManager : MonoBehaviour
 
     void Initialize()
     {
-        for (int i = -1; i < 5; i++)
+        for (int i = -1; i < 4; i++)
         {
-            SpawnLine(linePrefab);
+            SpawnLine(linePrefab,false);
         }
     }
     void NullCombo()
     {
-        ui.UpdateCombo(perfectCombo = 0);
+        // ui.UpdateCombo(perfectCombo = 0);
     }
     void NullScore()
     {
-        ui.UpdateScore(score = 0);
+        // ui.UpdateScore(score = 0);
     }
 
     void OnLose()
     {
+        canPlay = false;
         ui.OnGameOver();
-        NullCombo();
-        NullScore();
-        speed = 4;
-        while (currentLine.position.y > 0)
-        {
-            board.Translate(Vector3.down * Time.deltaTime * (currentLine.position.y + scrollDownSpeed));
-        }
-        OnClick -= Clicked;
+        // NullCombo();
+        // NullScore();
+        // speed = 4;
+        // while (currentLine.position.y > 0)
+        // {
+        //     board.Translate(Vector3.down * Time.deltaTime * (currentLine.position.y + scrollDownSpeed));
+        // }
+        // OnClick -= Clicked;
 
         if (spawnHeight - 12 > PlayerPrefs.GetInt("MaxHeight"))
             PlayerPrefs.SetInt("MaxHeight", (int)spawnHeight - 12);

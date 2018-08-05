@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
 public class GradientScript : MonoBehaviour {
-    public UnityEngine.Gradient gradient;
+    public List<Gradient> gradients;
+    // public UnityEngine.Gradient gradient;
 }
