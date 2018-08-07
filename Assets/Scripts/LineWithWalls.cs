@@ -53,10 +53,10 @@ public class LineWithWalls : LineBehaviour {
 		return false;
 	}
 
-	public override void Hit(Color current, Color next)
+	public override void Hit(Color next)
 	{
 
-		base.Hit(current, next);
+		base.Hit(next);
 
 		if(left)
 			leftWall.transform.SetParent(this.transform.parent, true);

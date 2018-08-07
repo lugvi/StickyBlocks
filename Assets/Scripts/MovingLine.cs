@@ -36,8 +36,8 @@ public class MovingLine : LineBehaviour
 
     }
 
-	public override void Hit(Color cur, Color next){
-		base.Hit(cur, next);
+	public override void Hit(Color next){
+		base.Hit(next);
 		StopAllCoroutines();
 	}
 

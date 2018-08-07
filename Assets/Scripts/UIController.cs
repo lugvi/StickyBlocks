@@ -37,6 +37,8 @@ public class UIController : MonoBehaviour
     public Slider minSlider;
     public Text minText;
 
+    public AnalyticsManager analyticsManager;
+
 
 
 
@@ -58,11 +60,12 @@ public class UIController : MonoBehaviour
 	{
 
 
-        PlayerPrefs.DeleteAll();
+        // PlayerPrefs.DeleteAll();
         StartButton.onClick.AddListener(()=>{
             GameManager.instance.canPlay = true;
             startPanel.SetActive(false);
             gamePanel.SetActive(true);
+            analyticsManager.StartEvent();
         });
 
         return;
@@ -137,13 +140,15 @@ public class UIController : MonoBehaviour
 
     public void UpdateScore(int score)
     {
-        Debug.Log("UPdate Score");
         currentScoreText.text = score + "";
         if (scoreAnimation.isPlaying) scoreAnimation.Stop();
         scoreAnimation.Play();
     }
     public void UpdateCombo(int combo)
     {
+        var pos = LineBehaviour.lastHitLine.transform.position;
+        // var dir = pos.x < 0 ? 2: -2;
+        // ComboText.transform.position = Camera.main.WorldToScreenPoint(LineBehaviour.lastHitLine.transform.position+new Vector3(dir, 1, 0));
         // ComboText.transform.position = Input.mousePosition + Vector3.one * 100;
         ComboText.text = combo < 2 ? "" : combo + "x";
         if (comboAnimation.isPlaying) comboAnimation.Stop();

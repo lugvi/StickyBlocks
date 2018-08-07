@@ -49,9 +49,11 @@ public class GameManager : MonoBehaviour
     int direction = 1;
 
     public UIController ui;
-    Queue<Transform> path;
+    public AnalyticsManager analyticsManager;
 
-    Transform currentLine;
+    Queue<LineBehaviour> path;
+
+    LineBehaviour currentLine;
 
     ParticleSystem currentParticles;
     Gradient currentGradient;
@@ -71,7 +73,7 @@ public class GameManager : MonoBehaviour
         highScore = PlayerPrefs.GetInt("Highscore");
         maxHeight = PlayerPrefs.GetInt("MaxHeight");
         //PlayerPrefs.SetInt("MaxHeight",0);
-        path = new Queue<Transform>();
+        path = new Queue<LineBehaviour>();
         Initialize();
         currentLine = path.Dequeue();
         // OnClick += Clicked;
@@ -82,10 +84,10 @@ public class GameManager : MonoBehaviour
     void Update()
     {
         // if(!canPlay)return;
-        PingPong(currentLine);
+        PingPong(currentLine.transform);
         ScrollDown();
 
-        if ((Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.Space)) && canPlay)
+        if ((Input.GetMouseButtonDown(0) || Input.GetKey(KeyCode.Space)) && canPlay)
         {
             Clicked();
             // OnClick();
@@ -94,7 +96,7 @@ public class GameManager : MonoBehaviour
     }
 
 
-    Transform lastLine;
+    // LineBehaviour lastLine;
 
     Color currentColor;
     float GradientStep = 0;
@@ -124,29 +126,9 @@ public class GameManager : MonoBehaviour
             maxHeightMarkerSet = true;
         }
         
-        path.Enqueue(Line);
-        lastLine = Line;
+        path.Enqueue(lineBehaviour);
 
     }
-
-
-    public void FixLine(Transform Line)
-    {
-                
-        if (path.Count > 0 && IsClose(Line.position, lastLine.position) < minDist)
-        {
-            if (IsClose(Line.position, Vector3.zero) > minDist)
-            {
-                Line.position = new Vector3(Line.position.x * -1, Line.position.y, Line.position.z);
-            }
-            else
-            {
-                Line.Translate(Vector3.left * (Random.value < 0.5f ? 1 : -1));
-            }
-        }
-    }
-
-
 
 
     float CheckColorDist(Color a, Color b)
@@ -168,7 +150,7 @@ public class GameManager : MonoBehaviour
 
     private void Clicked()
     {
-        float dist = IsClose(currentLine.position, path.Peek().position);
+        float dist = currentLine.IsClose(path.Peek());
         if (dist < minDist)
         {
             if (dist < perfDist)
@@ -188,9 +170,9 @@ public class GameManager : MonoBehaviour
 
     void ScrollDown()
     {
-        if (currentLine.position.y > 0)
+        if (currentLine.transform.position.y > 0)
         {
-            board.Translate(Vector3.down * Time.deltaTime * (currentLine.position.y + scrollDownSpeed));
+            board.Translate(Vector3.down * Time.deltaTime * (currentLine.transform.position.y + scrollDownSpeed));
         }
         else
         {
@@ -201,21 +183,22 @@ public class GameManager : MonoBehaviour
 
     void OnHit()
     {
-        currentLine.SetParent(path.Peek());
-        Destroy(currentLine.gameObject, 5);
+        currentLine.transform.SetParent(path.Peek().transform);
+        // Destroy(currentLine.gameObject, 5);
         currentLine = path.Dequeue();
 
-        currentLine.GetComponent<LineBehaviour>().Hit(currentColor, currentGradient.Evaluate(GradientStep));
+        currentLine.GetComponent<LineBehaviour>().Hit(path.Peek().currentColor);
 
 
-        direction = currentLine.position.x - path.Peek().position.x < 0 ? 1 : -1;
+        direction =  currentLine.DistanceBetween(path.Peek()) < 0 ? 1 : -1;
         SpawnLine(linePrefabs[Random.Range(0, difficulty)]);
         score += 1 + perfectCombo;
 
-        if(score % 20 == 0 && difficulty < linePrefabs.Count)
+        if(score % 30 == 0 && difficulty < linePrefabs.Count)
             difficulty ++;
         if (score > highScore)
         {
+            analyticsManager.HighScoreEvent(score);
             PlayerPrefs.SetInt("Highscore", score);
         }
         ui.UpdateScore(score);
@@ -224,7 +207,7 @@ public class GameManager : MonoBehaviour
     }
     void OnPerfect()
     {
-        StartCoroutine(PerfectAnim(currentLine.Find("TopBorder").GetComponent<SpriteRenderer>()));
+        currentLine.PlayPerfect();
         // currentLine.Find("Perfect").GetComponent<SpriteRenderer>().color = currentColor;
         // currentLine.Find("Perfect").GetComponent<Animation>().Play();
         // currentLine.Find("Perfect").parent = board.transform;
@@ -238,25 +221,12 @@ public class GameManager : MonoBehaviour
         OnLose();
     }
 
-    IEnumerator PerfectAnim(SpriteRenderer line)
-    {
-        Gradient grad = new Gradient();
-        grad.SetKeys( new GradientColorKey[] { new GradientColorKey(currentColor, 0.5f), new GradientColorKey(Color.white, 1.0f) }, new GradientAlphaKey[] {new GradientAlphaKey(1f, 0.0f) , new GradientAlphaKey(1f, 1.0f)} );
-        float time = 0;
-        while(time < .9f){
-            line.color = grad.Evaluate(time);
-            time += Time.deltaTime * 3;
-            yield return null;
-        }
-        line.color = Color.white;
-    }
 
 
-
-    float IsClose(Vector3 a, Vector3 b)
-    {
-        return Mathf.Abs(a.x - b.x);
-    }
+    // float IsClose(Vector3 a, Vector3 b)
+    // {
+    //     return Mathf.Abs(a.x - b.x);
+    // }
 
     void Initialize()
     {
@@ -313,6 +283,9 @@ public class GameManager : MonoBehaviour
             yield return null;
         }
         yield return new WaitForSecondsRealtime(.5f);
+
+        analyticsManager.GameOverEvent(score);
+        
         // time = 0f;
         // while(time < .9f)
         // {
