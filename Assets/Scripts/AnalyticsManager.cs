@@ -73,7 +73,7 @@ public class AnalyticsManager : MonoBehaviour
 
     public void HighScoreEvent(int score)
     {
-		GameAnalytics.NewProgressionEvent(GAProgressionStatus.Complete, "highscore");
+		GameAnalytics.NewProgressionEvent(GAProgressionStatus.Complete, "highscore",(int)score);
     }
 
 

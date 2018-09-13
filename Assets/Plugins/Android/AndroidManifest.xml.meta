@@ -1,8 +1,10 @@
 fileFormatVersion: 2
-guid: a482d5d6a392b2c46adf170d6867c356
-timeCreated: 1434361892
-licenseType: Store
+guid: 20f9cbbac674479895a6bc23efe94670
+labels:
+- gvh
+- gvh_version-5.2.0
 TextScriptImporter:
+  externalObjects: {}
   userData: 
   assetBundleName: 
   assetBundleVariant: 

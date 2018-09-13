@@ -66,6 +66,10 @@ public class UIController : MonoBehaviour
             startPanel.SetActive(false);
             gamePanel.SetActive(true);
             analyticsManager.StartEvent();
+            var startCount = PlayerPrefs.GetInt("start_count");
+            startCount++;
+            PlayerPrefs.SetInt("start_count", startCount);
+            Debug.LogWarning("Start Game: " + startCount);
         });
 
         return;

@@ -70,7 +70,7 @@ namespace GameAnalyticsSDK
             if(_instance != null)
             {
                 // only one system tracker allowed per scene
-                Debug.LogWarning("Destroying duplicate GameAnalytics object - only one is allowed per scene!");
+                Debug.Log("Destroying duplicate GameAnalytics object - only one is allowed per scene!");
                 Destroy(gameObject);
                 return;
             }

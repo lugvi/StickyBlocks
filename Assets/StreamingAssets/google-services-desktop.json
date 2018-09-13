@@ -1,0 +1,37 @@
+{
+  "client": [
+    {
+      "services": {
+        "appinvite_service": {
+          "status": 1
+        }, 
+        "analytics_service": {
+          "status": 0
+        }
+      }, 
+      "oauth_client": [
+        {
+          "client_id": "925302644817-uts3mn66pfn6tnsk55i9ib07dkmoo5et.apps.googleusercontent.com"
+        }
+      ], 
+      "api_key": [
+        {
+          "current_key": "AIzaSyDChvdJTnGdvbLXBkyNbXSl8qnRn0ltpN4"
+        }
+      ], 
+      "client_info": {
+        "mobilesdk_app_id": "1:925302644817:ios:79373f293382c4b2", 
+        "android_client_info": {
+          "package_name": "com.nefster.stickyblocks"
+        }
+      }
+    }
+  ], 
+  "configuration_version": "1", 
+  "project_info": {
+    "storage_bucket": "sticky-blocks.appspot.com", 
+    "project_id": "sticky-blocks", 
+    "firebase_url": "https://sticky-blocks.firebaseio.com", 
+    "project_number": "925302644817"
+  }
+}

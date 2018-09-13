@@ -218,6 +218,8 @@ public class GameManager : MonoBehaviour
 
     void OnMiss()
     {
+        Debug.LogWarning("Missed");
+
         OnLose();
     }
 
@@ -285,6 +287,8 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSecondsRealtime(.5f);
 
         analyticsManager.GameOverEvent(score);
+        Debug.Log("Game Over: " + score + " / " + PlayerPrefs.GetInt("Highscore"));
+
         
         // time = 0f;
         // while(time < .9f)

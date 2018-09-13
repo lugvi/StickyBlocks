@@ -40,6 +40,7 @@ public class LineWithWalls : LineBehaviour {
 		if(CheckWallCollision && CheckWall() )
 		{
 			CheckWallCollision = false;
+			Debug.LogWarning("Wall Hit");
 			GameManager.instance.OnLose();
 		}
 			
@@ -53,6 +54,7 @@ public class LineWithWalls : LineBehaviour {
 		return false;
 	}
 
+
 	public override void Hit(Color next)
 	{
 
@@ -65,5 +67,29 @@ public class LineWithWalls : LineBehaviour {
 			// rightWall.transform.parent = this.transform.parent;
 	}
 
+	public void HideWalls()
+	{
+		CheckWallCollision = false;
+		StartCoroutine(Hide());
+
+	}
+
+	IEnumerator Hide()
+	{
+		float dist = 0;
+		while(dist < 1)
+		{
+			if(left)
+				leftWall.transform.Translate(Vector2.left * Time.deltaTime * 2);
+			if(right)
+				rightWall.transform.Translate(Vector2.left * Time.deltaTime * 2);
+			dist += Time.deltaTime;
+			yield return null;
+		}
+		if(left)
+			Destroy(leftWall);
+		if(right)
+			Destroy(rightWall);
+	}
 
 }

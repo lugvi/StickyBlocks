@@ -87,7 +87,7 @@ public class LineBehaviour : MonoBehaviour
         if (lastHitLine is LineWithWalls)
         {
             LineWithWalls w = (LineWithWalls)lastHitLine;
-            w.CheckWallCollision = false;
+            w.HideWalls();
         }
         lastHitLine = this;
 
