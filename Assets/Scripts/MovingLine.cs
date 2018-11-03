@@ -22,21 +22,21 @@ public class MovingLine : LineBehaviour
 		int direction = 1;
         while (true)
         {
-            if (this.transform.position.x >= 3)
+            if (Target.transform.localPosition.x >= 3)
             {
                 direction = -1;
             }
-            if (this.transform.position.x <= -3)
+            if (Target.transform.localPosition.x <= -3)
             {
                 direction = 1;
             }
-            this.transform.Translate(Vector3.right * Time.deltaTime * speed * direction);
+            this.Target.transform.Translate(Vector3.right * Time.deltaTime * speed * direction);
 			yield return null;
         }
 
     }
 
-	public override void Hit(Color next){
+	public override void Hit(LineBehaviour next){
 		base.Hit(next);
 		StopAllCoroutines();
 	}

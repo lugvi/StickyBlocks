@@ -13,16 +13,16 @@ public class GameManager : MonoBehaviour
 
     // public event Click OnClick;
 
-    [Range(0, 5)]
+    [Range(0, 3)]
     public float minDist;
-    [Range(0, 5)]
+    [Range(0, 1)]
     public float perfDist;
 
-    [Range(1, 100)]
-    public float speed = 1;
     [Range(1, 10)]
+    public float speed = 1;
+    [Range(1, 3)]
     public float scrollDownSpeed = 1;
-    [Range(0, 1)]
+    [Range(0, .5f)]
     public float speedModifier;
     [Range(0, 0.1f)]
     public float hueModifier;
@@ -37,11 +37,13 @@ public class GameManager : MonoBehaviour
 
 
     // public GameObject linePrefab;
+
+    public List<SkinObject> skins;
     public List<GameObject> linePrefabs;
     public GameObject textPrefab;
 
-    public GradientScript gr;
-
+    // public GradientScript gr;
+    public SpriteRenderer background;
     public Transform board;
 
     float spawnHeight = -2;
@@ -61,14 +63,15 @@ public class GameManager : MonoBehaviour
 
     int difficulty = 1;
 
+
+
     // Use this for initialization
     void Awake()
     {
         instance = this;
         Time.timeScale = 1f;
 
-
-        currentGradient = gr.gradients[Random.Range(0, gr.gradients.Count)];
+        CurrentSkin = CurrentSkin;
         GradientStep = Random.value;
         highScore = PlayerPrefs.GetInt("Highscore");
         maxHeight = PlayerPrefs.GetInt("MaxHeight");
@@ -83,9 +86,11 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // if(!canPlay)return;
-        PingPong(currentLine.transform);
-        ScrollDown();
+        if (!canPlay) return;
+        PingPong(currentLine.Target.transform);
+
+        if (count > 1)
+            ScrollDown();
 
         if ((Input.GetMouseButtonDown(0) || Input.GetKey(KeyCode.Space)) && canPlay)
         {
@@ -109,15 +114,17 @@ public class GameManager : MonoBehaviour
         GradientStep += hueModifier;
         GradientStep %= 1;
 
-        
+        Line.name = spawnHeight + " Tile";
+
+
 
         var lineBehaviour = Line.GetComponent<LineBehaviour>();
         lineBehaviour.Activate(spawnHeight, currentColor);
 
-        spawnHeight += 2;
+        spawnHeight += 1.5f;
 
-        //if(animate) // ?
-            // Target.GetComponent<Animation>().Play();
+        // if (animate) // ?
+        //     lineBehaviour.Target.GetComponent<Animation>().Play();
 
 
         if (!maxHeightMarkerSet && spawnHeight > maxHeight && maxHeight > 10)
@@ -125,7 +132,7 @@ public class GameManager : MonoBehaviour
             lineBehaviour.SetMax(textPrefab, board, spawnHeight);
             maxHeightMarkerSet = true;
         }
-        
+
         path.Enqueue(lineBehaviour);
 
     }
@@ -168,11 +175,28 @@ public class GameManager : MonoBehaviour
 
     }
 
+    // private float down = 1f;
+
     void ScrollDown()
     {
-        if (currentLine.transform.position.y > 0)
+        var y = Camera.main.WorldToViewportPoint(currentLine.transform.position).y;
+
+        var d = 2f;
+        if (y > .4f)
+            d = y * 10f;
+        // board.transform.position = Vector3.Lerp(board.transform.position, new Vector3(0, -currentLine.transform.localPosition.y + 1, 0), Time.deltaTime);
+        // else
+
+        board.Translate(Vector3.down * Time.deltaTime * d);// (currentLine.transform.position.y + scrollDownSpeed));
+
+        // down = Mathf.Lerp(down, 2f, Time.deltaTime * scrollDownSpeed);
+
+
+        Debug.Log(currentLine.transform.position.y);
+
+        if (currentLine.transform.position.y < -4)
         {
-            board.Translate(Vector3.down * Time.deltaTime * (currentLine.transform.position.y + scrollDownSpeed));
+            OnLose();
         }
         else
         {
@@ -180,22 +204,46 @@ public class GameManager : MonoBehaviour
         }
 
     }
+    private int count;
+
+    public SkinObject CurrentSkin
+    {
+        get
+        {
+            return skins[PlayerPrefs.GetInt("current_skin")];
+        }
+        set
+        {
+
+        background.sprite = value.background;
+        currentGradient = value.gradients[Random.Range(0, value.gradients.Count)];
+            PlayerPrefs.SetInt("current_skin", skins.IndexOf(value));
+        }
+    }
 
     void OnHit()
     {
-        currentLine.transform.SetParent(path.Peek().transform);
+        count++;
+        // if (currentLine.transform.position.y < 1)
+        //     down -= 0.05f;
+
+        scrollDownSpeed *= 1.5f;
+
+        // currentLine.transform.SetParent(path.Peek().transform);// change
+        currentLine.Follow(path.Peek().transform.GetComponent<LineBehaviour>().Target.transform);
+
         // Destroy(currentLine.gameObject, 5);
         currentLine = path.Dequeue();
 
-        currentLine.GetComponent<LineBehaviour>().Hit(path.Peek().currentColor);
+        currentLine.Hit(path.Peek());
 
 
-        direction =  currentLine.DistanceBetween(path.Peek()) < 0 ? 1 : -1;
+        direction = currentLine.DistanceBetween(path.Peek()) < 0 ? 1 : -1;
         SpawnLine(linePrefabs[Random.Range(0, difficulty)]);
         score += 1 + perfectCombo;
 
-        if(score % 30 == 0 && difficulty < linePrefabs.Count)
-            difficulty ++;
+        if (score % 30 == 0 && difficulty < linePrefabs.Count)
+            difficulty++;
         if (score > highScore)
         {
             analyticsManager.HighScoreEvent(score);
@@ -232,9 +280,9 @@ public class GameManager : MonoBehaviour
 
     void Initialize()
     {
-        for (int i = -1; i < 5; i++)
+        for (int i = -1; i < 10; i++)
         {
-            SpawnLine(linePrefabs[0],false);
+            SpawnLine(linePrefabs[0], false);
         }
     }
     void NullCombo()
@@ -268,28 +316,29 @@ public class GameManager : MonoBehaviour
 
     IEnumerator GameOver()
     {
-        Time.timeScale = 0f;
+        Time.timeScale = 0.1f;
         // yield return new WaitForSecondsRealtime(1f);
         var cam = Camera.main;
-        // var grey = Camera.main.GetComponent<GreyScale>();
-        ui.OnGameOver();
+        var grey = Camera.main.GetComponent<GreyScale>();
 
-        // grey.enabled = true;
+        grey.enabled = true;
+        ui.Missed();
         float time = 0;
-        while(time < .9f)
+        while (time < .9f)
         {
-            var tm = Time.unscaledDeltaTime*3;
-            cam.transform.Rotate(0,0, -tm * 10);
+            var tm = Time.deltaTime * 3;
+            cam.transform.Rotate(0, 0, -tm * 10);
             time += tm;
-            cam.fieldOfView -= tm*5;
+            cam.fieldOfView -= tm * 10;
             yield return null;
         }
         yield return new WaitForSecondsRealtime(.5f);
+        ui.OnGameOver();
 
         analyticsManager.GameOverEvent(score);
         Debug.Log("Game Over: " + score + " / " + PlayerPrefs.GetInt("Highscore"));
 
-        
+
         // time = 0f;
         // while(time < .9f)
         // {
@@ -308,7 +357,7 @@ public class GameManager : MonoBehaviour
         // cam.fieldOfView = 60f;
         // cam.transform.rotation = Quaternion.identity;
         // Time.timeScale = 1f;
-        
+
 
     }
 

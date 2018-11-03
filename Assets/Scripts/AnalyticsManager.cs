@@ -61,11 +61,14 @@ public class AnalyticsManager : MonoBehaviour
 
 
 #region GAME_ANALYTICS
+
+    // es punqcia gamoidzaxe wagebis dros
     public void GameOverEvent(float score)
     {
 		GameAnalytics.NewProgressionEvent(GAProgressionStatus.Complete, "game", (int)score);
     }
 
+    // es punqcia gamoidzaxe dawyebis dros
     public void StartEvent()
     {
 		GameAnalytics.NewProgressionEvent(GAProgressionStatus.Start, "game");

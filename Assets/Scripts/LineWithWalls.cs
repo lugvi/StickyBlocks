@@ -55,7 +55,7 @@ public class LineWithWalls : LineBehaviour {
 	}
 
 
-	public override void Hit(Color next)
+	public override void Hit(LineBehaviour next)
 	{
 
 		base.Hit(next);

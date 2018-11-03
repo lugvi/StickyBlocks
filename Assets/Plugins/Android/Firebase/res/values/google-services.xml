@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources tools:keep="@string/firebase_database_url,@string/gcm_defaultSenderId,@string/google_storage_bucket,@string/project_id,@string/google_api_key,@string/google_crash_reporting_api_key,@string/google_app_id,@string/default_web_client_id" xmlns:tools="http://schemas.android.com/tools">
+  <string name="firebase_database_url" translatable="false">https://sticky-blocks.firebaseio.com</string>
+  <string name="gcm_defaultSenderId" translatable="false">925302644817</string>
+  <string name="google_storage_bucket" translatable="false">sticky-blocks.appspot.com</string>
+  <string name="project_id" translatable="false">sticky-blocks</string>
+  <string name="google_api_key" translatable="false">AIzaSyB2XH4HymdQc8paPeVEU7d1wv5MljeqNBw</string>
+  <string name="google_crash_reporting_api_key" translatable="false">AIzaSyB2XH4HymdQc8paPeVEU7d1wv5MljeqNBw</string>
+  <string name="google_app_id" translatable="false">1:925302644817:android:79373f293382c4b2</string>
+  <string name="default_web_client_id" translatable="false">925302644817-lfgde9isopgpn51sas5bu9ol7p6arok3.apps.googleusercontent.com</string>
+</resources>
