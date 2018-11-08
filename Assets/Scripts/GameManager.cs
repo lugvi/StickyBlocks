@@ -63,6 +63,9 @@ public class GameManager : MonoBehaviour
 
     int difficulty = 1;
 
+    float fieldOfView;
+    float startFieldOfView;
+    Camera cam;
 
 
     // Use this for initialization
@@ -77,8 +80,11 @@ public class GameManager : MonoBehaviour
         maxHeight = PlayerPrefs.GetInt("MaxHeight");
         //PlayerPrefs.SetInt("MaxHeight",0);
         path = new Queue<LineBehaviour>();
-        Initialize();
-        currentLine = path.Dequeue();
+
+        cam = Camera.main;
+        fieldOfView = cam.fieldOfView;
+        startFieldOfView = cam.fieldOfView;
+        // Initialize();
         // OnClick += Clicked;
     }
 
@@ -86,6 +92,7 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, fieldOfView, Time.deltaTime * 20);
         if (!canPlay) return;
         PingPong(currentLine.Target.transform);
 
@@ -97,7 +104,6 @@ public class GameManager : MonoBehaviour
             Clicked();
             // OnClick();
         }
-
     }
 
 
@@ -179,7 +185,7 @@ public class GameManager : MonoBehaviour
 
     void ScrollDown()
     {
-        var y = Camera.main.WorldToViewportPoint(currentLine.transform.position).y;
+        var y = cam.WorldToViewportPoint(currentLine.transform.position).y;
 
         var d = 2f;
         if (y > .4f)
@@ -192,7 +198,7 @@ public class GameManager : MonoBehaviour
         // down = Mathf.Lerp(down, 2f, Time.deltaTime * scrollDownSpeed);
 
 
-        Debug.Log(currentLine.transform.position.y);
+        // Debug.Log(currentLine.transform.position.y);
 
         if (currentLine.transform.position.y < -4)
         {
@@ -215,14 +221,15 @@ public class GameManager : MonoBehaviour
         set
         {
 
-        background.sprite = value.background;
-        currentGradient = value.gradients[Random.Range(0, value.gradients.Count)];
+            background.sprite = value.background;
+            currentGradient = value.gradients[Random.Range(0, value.gradients.Count)];
             PlayerPrefs.SetInt("current_skin", skins.IndexOf(value));
         }
     }
 
     void OnHit()
     {
+
         count++;
         // if (currentLine.transform.position.y < 1)
         //     down -= 0.05f;
@@ -255,6 +262,8 @@ public class GameManager : MonoBehaviour
     }
     void OnPerfect()
     {
+        StopCoroutine("Zumo");
+        StartCoroutine("Zumo");
         currentLine.PlayPerfect();
         // currentLine.Find("Perfect").GetComponent<SpriteRenderer>().color = currentColor;
         // currentLine.Find("Perfect").GetComponent<Animation>().Play();
@@ -278,12 +287,15 @@ public class GameManager : MonoBehaviour
     //     return Mathf.Abs(a.x - b.x);
     // }
 
-    void Initialize()
+    public void Initialize()
     {
+        canPlay = true;
         for (int i = -1; i < 10; i++)
         {
             SpawnLine(linePrefabs[0], false);
         }
+        currentLine = path.Dequeue();
+
     }
     void NullCombo()
     {
@@ -314,12 +326,19 @@ public class GameManager : MonoBehaviour
 
     }
 
+    IEnumerator Zumo()
+    {
+        fieldOfView = startFieldOfView - 1f;
+        yield return new WaitForSeconds(.1f);
+        fieldOfView = startFieldOfView;
+    }
+
     IEnumerator GameOver()
     {
         Time.timeScale = 0.1f;
+        yield return 0;
         // yield return new WaitForSecondsRealtime(1f);
-        var cam = Camera.main;
-        var grey = Camera.main.GetComponent<GreyScale>();
+        var grey = cam.GetComponent<GreyScale>();
 
         grey.enabled = true;
         ui.Missed();
@@ -329,7 +348,8 @@ public class GameManager : MonoBehaviour
             var tm = Time.deltaTime * 3;
             cam.transform.Rotate(0, 0, -tm * 10);
             time += tm;
-            cam.fieldOfView -= tm * 10;
+            fieldOfView -= tm * 15;
+
             yield return null;
         }
         yield return new WaitForSecondsRealtime(.5f);

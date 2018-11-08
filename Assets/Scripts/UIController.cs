@@ -69,7 +69,7 @@ public class UIController : MonoBehaviour
         // PlayerPrefs.DeleteAll();
         StartButton.onClick.AddListener(() =>
         {
-            GameManager.instance.canPlay = true;
+            GameManager.instance.Initialize();
             startPanel.SetActive(false);
             gamePanel.SetActive(true);
             analyticsManager.StartEvent();
